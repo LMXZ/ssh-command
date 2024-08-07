@@ -1,7 +1,4 @@
-import paramiko
-import socket, threading
-from paramiko.channel import ChannelStdinFile, ChannelFile
-import json
+from std import *
 
 config = json.load(open('config.json', 'rb'))
 

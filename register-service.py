@@ -1,3 +1,4 @@
+from std import *
 import os, sys, shutil
 
 currentPath = os.path.dirname(os.path.abspath(__file__))
