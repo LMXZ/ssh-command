@@ -1,9 +1,23 @@
 {
-    "local-ip": "0.0.0.0",
-    "local-port": 7891,
-    "remote-ip": "",
-    "remote-port": 0,
-    "username": "",
-    "password": "",
-    "command": "nc localhost 7891"
+    "local_ip": "0.0.0.0",
+    "local_port": 6789,
+    "command": "nc localhost 7891",
+    "target_host": "host",
+    "hosts": {
+        "host_proxy": {
+            "hostname": "",
+            "port": 22,
+            "username": "",
+            "password": "",
+            "key_filename": []
+        },
+        "host": {
+            "hostname": "",
+            "port": 22,
+            "username": "",
+            "password": "",
+            "proxy_jump": "proxy_jump",
+            "key_filename": []
+        }
+    }
 }
