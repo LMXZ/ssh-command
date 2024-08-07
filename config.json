@@ -1,0 +1,9 @@
+{
+    "local-ip": "0.0.0.0",
+    "local-port": 7891,
+    "remote-ip": "",
+    "remote-port": 0,
+    "username": "",
+    "password": "",
+    "command": "nc localhost 7891"
+}

@@ -1,0 +1,9 @@
+[Unit]
+Description=remote execute command line.
+
+[Service]
+Type=simple
+ExecStart=/bin/bash "{servicePath}/start-service.sh"
+
+[Install]
+WantedBy=multi-user.target
