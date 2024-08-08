@@ -37,19 +37,32 @@ def tcp_reverse_mapping_worker(conn_receiver: socket.socket, stdout: ChannelFile
     stdout.close()
     return
 
-# 端口映射请求处理
-def tcp_mapping_request(local_conn: socket.socket, remote_ip, remote_port, username, password, command):
-    try:
-        ssh = paramiko.SSHClient()
-        # 允许连接不在know_hosts文件中的主机
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+def connect_ssh(host_name: str):
+    host_config: dict = config['hosts'][host_name]
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    kwargs = host_config.copy()
+    if not kwargs.setdefault('proxy_jump', None) is None:
+        sock = connect_ssh(kwargs['proxy_jump']).get_transport().open_channel(
+            'direct-tcpip', (kwargs['hostname'], kwargs['port']), ('', 0)
+        )
+        kwargs['sock'] = sock
+    kwargs = {k: v for k, v in filter(lambda x: x[0]!='proxy_jump', kwargs.items())}
+    ssh.connect(**kwargs)
+    return ssh
 
-        # 建立连接
-        ssh.connect(remote_ip, username=username, port=remote_port, password=password)
+# 端口映射请求处理
+def tcp_mapping_request(local_conn: socket.socket, target_host: str, command: str):
+    try:
+        print('trying to connect...')
+        ssh = connect_ssh(target_host)
 
         # 使用这个连接执行命令
         ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(command)
-    except Exception:
+        print('success!')
+    except Exception as e:
+        print('failed!')
+        print(e.args)
         local_conn.close()
         return
     threading.Thread(target=tcp_mapping_worker, args=(local_conn, ssh_stdin)).start()
@@ -57,8 +70,8 @@ def tcp_mapping_request(local_conn: socket.socket, remote_ip, remote_port, usern
     return
 
 if __name__ == "__main__":
-    local_ip = config['local-ip']          # 本机地址
-    local_port = config['local-port']            # 本机端口
+    local_ip = config['local_ip']          # 本机地址
+    local_port = config['local_port']            # 本机端口
     
     local_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     local_server.bind((local_ip, local_port))
@@ -70,5 +83,4 @@ if __name__ == "__main__":
             local_server.close()
             break
         
-        threading.Thread(target=tcp_mapping_request, args=(local_conn, config['remote-ip'], config['remote-port'],
-                                                           config['username'], config['password'], config['command'])).start()
+        threading.Thread(target=tcp_mapping_request, args=(local_conn, config['target_host'], config['command'])).start()
