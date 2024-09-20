@@ -69,9 +69,9 @@ def tcp_mapping_request(local_conn: socket.socket, target_host: str, command: st
     threading.Thread(target=tcp_reverse_mapping_worker, args=(local_conn, ssh_stdout)).start()
     return
 
-if __name__ == "__main__":
-    local_ip = config['local_ip']          # 本机地址
-    local_port = config['local_port']            # 本机端口
+def start_service(service: Dict):
+    local_ip = service['local_ip']          # 本机地址
+    local_port = service['local_port']            # 本机端口
     
     local_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     local_server.bind((local_ip, local_port))
@@ -83,4 +83,16 @@ if __name__ == "__main__":
             local_server.close()
             break
         
-        threading.Thread(target=tcp_mapping_request, args=(local_conn, config['target_host'], config['command'])).start()
+        threading.Thread(target=tcp_mapping_request, args=(local_conn, service['target_host'], service['command'])).start()
+
+if __name__ == "__main__":
+    services: Dict[str, Dict] = config['services']
+    services_thrs: List[threading.Thread] = []
+    for service_name, service in services.items():
+        thr = threading.Thread(target=start_service, args=(service,))
+        services_thrs.append(thr)
+        thr.start()
+    
+    for i in services_thrs:
+        i.join()
+        
